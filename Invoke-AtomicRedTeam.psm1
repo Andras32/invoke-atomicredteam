@@ -1,7 +1,7 @@
 #requires -Version 3.0
 
 #Get public and private function definition files.
-$Public = @( Get-ChildItem -Path $PSScriptRoot\Public\*.ps1 -Recurse -ErrorAction SilentlyContinue )
+$Public = @( Get-ChildItem -Path $PSScriptRoot\Public\*.ps1 -ErrorAction SilentlyContinue )
 $Private = @( Get-ChildItem -Path $PSScriptRoot\Private\*.ps1 -Recurse -ErrorAction SilentlyContinue )
 
 #Dot source the files
@@ -12,4 +12,10 @@ Foreach ($import in @($Public + $Private)) {
     Catch {
         Write-Error -Message "Failed to import function $($import.fullname): $_"
     }
+}
+
+#Install Invoke-Obfuscation
+if (-not (Get-Module -Name "Invoke-Obfuscation" -ErrorAction:SilentlyContinue)) {
+    Write-Host "$PSScriptRoot\Public\Invoke-Obfuscation\Invoke-Obfuscation.psd1"
+    Import-Module "$PSScriptRoot\Public\Invoke-Obfuscation\Invoke-Obfuscation.psd1"
 }

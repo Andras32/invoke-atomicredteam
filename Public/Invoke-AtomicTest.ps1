@@ -59,6 +59,11 @@ function Invoke-AtomicTest {
         $PathToAtomicsFolder = $( if ($IsLinux -or $IsMacOS) { $Env:HOME + "/AtomicRedTeam/atomics" } else { $env:HOMEDRIVE + "\AtomicRedTeam\atomics" }),
 
         [Parameter(Mandatory = $false,
+            ParameterSetName = 'technique')]
+        [String]
+        $Obfuscate,
+
+        [Parameter(Mandatory = $false,
             ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'technique')]
         [switch]
@@ -245,6 +250,11 @@ function Invoke-AtomicTest {
                         Write-KeyValue "Executing test: " $testId
                         $startTime = get-date
                         $final_command = Merge-InputArgs $test.executor.command $test $InputArgs $PathToAtomicsFolder
+                        if ($Obfuscate) {
+                            if ($Obfuscate -like "default") { $Obfuscate = 'TOKEN\ALL\1,BACK,MEMBER\1,BACK,WHITESPACE\1,1,1,COMPRESS\1,HOME,(ENCODING|STRING)\*'}
+                            $sb = [scriptblock]::create($final_command)
+                            $final_command = Invoke-Obfuscation -ScriptBlock $sb -Command $Obfuscate -Quiet
+                        }
                         $res = Invoke-ExecuteCommand $final_command $test.executor.name  $TimeoutSeconds
                         Write-ExecutionLog $startTime $AT $testCount $test.name $ExecutionLogPath $TimeoutSeconds
                         Write-KeyValue "Done executing test: " $testId
